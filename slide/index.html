@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+	<title>Introduction to transformers</title>
+
+	<link rel="stylesheet" href="dist/reset.css">
+	<link rel="stylesheet" href="dist/reveal.css">
+	<link rel="stylesheet" href="dist/theme/white.css">
+
+	<!-- Theme used for syntax highlighted code -->
+	<link rel="stylesheet" href="plugin/highlight/monokai.css">
+</head>
+
+<body>
+	<div class="reveal">
+		<div class="slides">
+			<section>
+				<h1>Transformers</h1>
+				Ping-Ting Liu, Bo-Wei Lin
+			</section>
+			<section>
+				<section>
+					<h2>Attention</h2>
+				</section>
+				<section>
+					<p>How machine understand sentences?</p>
+				</section>
+				<section>
+					<h3>Main Idea</h3>
+					<p>Sharing information between tokens</p>
+					<img src="imgs/info_sharing.svg" class="r-stretch">
+				</section>
+				<section>
+					<p>Two questions to anwser:</p>
+					<ul>
+						<li>Get information from which token?</li>
+						<li>What information are we sharing?</li>
+					</ul>
+				</section>
+				<section>
+					<p><b>Attention</b> is all you need!</p>
+				</section>
+			</section>
+			<section>
+				<section>
+					<h2>Single Head Attention Calculation</h2>
+				</section>
+				<section>
+					<div class="r-hstack justify-center">
+						<div>
+							<p>
+								<strong>Input:</strong> a sequence of vectors
+							</p>
+							<ul>
+								<li>Each vector encodes a word</li>
+								<li>Sequence length: $N$</li>
+								<li>Embeds token in $d$-dimensional space</li>
+							</ul>
+						</div>
+						<img src="imgs/input_X.svg" style="height: 500px; margin-left: 50px;">
+					</div>
+				</section>
+				<section>
+					<div class="r-hstack justify-center">
+						<div>
+							<p>
+								<strong>Output:</strong> a sequence of vectors
+							</p>
+							<ul>
+								<li>Same dimensions as the input</li>
+								<li>$a_i$: new info. for token $i$</li>
+								<li>We update the information in $X$ by adding $A$ to $X$</li>
+							</ul>
+						</div>
+						<img src="imgs/output_A.svg" style="height: 500px; margin-left: 50px;">
+					</div>
+				</section>
+				<section>
+					<p>Get information from which token?</p>
+					<ul>
+						<li>Each token <em>asks</em> other tokens if they got the information.</li>
+						<li>Each token <em>answers</em> to the questions.</li>
+						<li>Then we know the relationship between tokens.</li>
+					</ul>
+				</section>
+				<section>
+					<h3>Query</h3>
+					<p>The <b>question</b> asked by the tokens.</p>
+					<img src="imgs/calc_query.svg" class="r-stretch">
+				</section>
+				<section>
+					<h3>Key</h3>
+					<p>The <b>answer</b> provided by the tokens.</p>
+					<img src="imgs/calc_key.svg" class="r-stretch">
+				</section>
+				<section data-auto-animate>
+					<p data-id="text1">Check answers against questions</p>
+					<p>$q_i \cdot k_j$</p>
+					<p class="fragment">Dot product measures the similariry in <b>direction</b></p>
+				</section>
+				<section data-auto-animate data-transition="fade">
+					<p data-id="text1">Check answers against questions</p>
+					<img src="imgs/calc_QK.svg" class="r-stretch">
+				</section>
+				<section data-transition="fade">
+					<p>Converting score to distribution</p>
+					<img src="imgs/calc_alpha_ij.svg" class="r-stretch">
+					<p><b>Important:</b> softmax is applied row-wise</p>
+				</section>
+				<section>
+					<p>$\alpha_{ij}$: the amount of <em>information</em> to pass from token $j$ to token $i$</p>
+					<p class="fragment">What <em>information</em> are we passing?</p>
+				</section>
+				<section>
+					<h3>Value*</h3>
+					<p>Extract information with $W^V$</p>
+					<img src="imgs/calc_V_star.svg" class="r-stretch">
+				</section>
+				<section data-auto-animate>
+					<h3 data-id="title-attention">Dot-Product Attention</h3>
+					<img src="imgs/calc_simplified_attention.svg" class="r-stretch">
+				</section>
+				<section data-auto-animate>
+					<h3 data-id="title-attention">Scaled Dot-Product Attention</h3>
+					<p>$\text{Attention}(Q, K, V) = \text{softmax}(\frac{QK^T}{\sqrt{d_k}})V$</p>
+					<p>divided by $\sqrt{d_k}$ for numerical stability</p>
+				</section>
+			</section>
+			<section>
+				<section>
+					<h2>Multi-head Attention</h2>
+				</section>
+				<section>
+					<h3>A head of attention</h3>
+					<p>Captures a kind of information flow, it describes:</p>
+					<ol>
+						<li>How to extract information (values) from tokens.</li>
+						<li>How to pass this information around</li>
+					</ol>
+				</section>
+				<section>
+					<h3>The need for multi-head</h3>
+					<p>There are many kinds of information</p>
+				</section>
+				<section>
+					<p>Combining results from $h$ single-head attentions</p>
+					<img src="imgs/calc_multi_head_ideal.svg" class="r-stretch">
+				</section>
+				<section>
+					<p>but that's not what we see in the paper:</p>
+					<p style="font-size: 28px;">
+						\[ \begin{align*}
+						\text{MultiHead}(Q, K, V) &= \text{Concat}(\text{head}_1, \ldots, \text{head}_h)W^O \\
+						\text{where } \text{head}_i &= \text{Attention}(QW_i^Q, KW_i^K, VW_i^V)
+						\end{align*} \]
+					</p>
+					<p class="fragment">What is $\text{Concat}$? What is $W^O$? And, why?</p>
+				</section>
+				<section>
+					<h3>Attention Parameters*</h3>
+					<p>Single-head attention parameters:</p>
+					<div class="justify-center" style="display: flex; flex-direction: row; gap: 30px;">
+						<img src="imgs/attention_params_star.svg" class="r-stretch">
+						<div>
+							<p>In Meta's LLaMA 3.1-70B:</p>
+							<ul>
+								<li>$d=8192$</li>
+								<li>$d_k=128$</li>
+							</ul>
+						</div>
+					</div>
+					<p>When having $h$ copies of this, $W^V$ is too large</p>
+				</section>
+				<section>
+					<h3>Modified Value Calculation</h3>
+					<p>In multi-head, we give value a new dimension $d_v$</p>
+					<img src="imgs/calc_V.svg" class="r-stretch">
+					<p>This makes the output of each head $\in \mathbb{R} ^{N \times d_v}$</p>
+				</section>
+				<section>
+					<h3>Actual Multi-head Attention</h3>
+					<img src="imgs/calc_multi_head.svg" class="r-stretch">
+				</section>
+				<!-- multihead detailed overview -->
+				<section>
+					<h3>Attention Paramenters</h3>
+					<p>The parameters per head (on average):</p>
+					<img src="imgs/attention_params.svg" class="r-stretch">
+					<p>Usually, we set $d_k = d_v = d / h$</p>
+				</section>
+			</section>
+			<section>
+				<section>
+					<h2>Transformer</h2>
+				</section>
+				<section>
+					<h3>Transformer Overview</h3>
+					<div class="r-stack">
+						<img src="imgs/transformer_frame1.svg" height="500">
+						<img src="imgs/transformer_frame2.svg" class="fragment" height="500">
+						<img src="imgs/transformer_frame3.svg" class="fragment" height="500">
+						<img src="imgs/transformer_frame4.svg" class="fragment" height="500">
+					</div>
+				</section>
+				<section>
+					<h3>Transformer Block</h3>
+					<img src="imgs/transformer_block.svg" class="r-stretch">
+				</section>
+				<section data-auto-animate data-auto-animate-id="ffn">
+					<h3 data-id="ffn-header">Feed Forward Network</h3>
+					<p>Extend information in tokens</p>
+					<img src="imgs/loc_feed_forward.svg" class="r-stretch">
+				</section>
+				<section data-auto-animate data-auto-animate-id="ffn">
+					<h3 data-id="ffn-header">Feed Forward Network</h3>
+					<p>A 2-layer NN with ReLU activation</p>
+					<div style="font-size: 32px;">
+						<p>$\text{FFN}(x) = \text{max}(0, xW_1 + b_1)W_2 + b_2$</p>
+						<p>$W_1 \in \mathbb{R}^{d \times d_{ff}}, W_2 \in \mathbb{R}^{d_{ff} \times d},d_{ff} \approx
+							4d$</p>
+					</div>
+					<p>The calculation is independent among input tokens</p>
+				</section>
+				<section data-auto-animate data-auto-animate-id="layer-norm">
+					<h3 data-id="layer-norm-header">Layer Normalization</h3>
+					<p>Stabilize training</p>
+					<img src="imgs/loc_layer_norm.svg" class="r-stretch">
+				</section>
+				<section data-auto-animate data-auto-animate-id="layer-norm">
+					<h3 data-id="layer-norm-header">Layer Normalization</h3>
+					<div class="justify-center"
+						style="display: flex; flex-direction: row; gap: 30px; align-items: center;">
+						<img src="imgs/calc_layer_norm.svg" style="height: 500px;">
+						<div>
+							<p style="font-size: 28px;">
+								$$
+								\begin{align*}
+								\mu &= \frac{1}{d} \sum_{i=1}^{d} \chi_i \\
+								\sigma &= \sqrt{\frac{1}{d} \sum_{i=1}^{d} (\chi_i - \mu)^2} \\
+								\chi_i &\leftarrow \gamma_i \frac {(\chi_i - \mu)}{\sigma} + \beta_i
+								\end{align*}
+								$$
+							</p>
+							<p style="font-size: 36px;">$\gamma_i$ and $\beta_i$ are learnable parameters</p>
+						</div>
+					</div>
+				</section>
+				<section data-auto-animate data-auto-animate-id="masked-atten">
+					<h3 data-id="masked-attention-header">Masked Attention</h3>
+					<img src="imgs/loc_masked_attention.svg" class="r-stretch">
+				</section>
+				<section data-auto-animate data-auto-animate-id="masked-atten">
+					<h3 data-id="masked-attention-header">Masked Attention</h3>
+					<p>Prevent receiving information from latter tokens</p>
+					<img src="imgs/calc_masked_QK.svg" class="r-stretch">
+				</section>
+				<section data-auto-animate data-auto-animate-id="cross-atten">
+					<h3 data-id="cross-attention-header">Cross Attention</h3>
+					<p>Mix the information from encoder to decoder</p>
+					<img src="imgs/loc_cross_attention.svg" class="r-stretch">
+				</section>
+				<section data-auto-animate data-auto-animate-id="cross-atten">
+					<h3 data-id="cross-attention-header">Cross Attention</h3>
+					<img src="imgs/calc_cross_attention.svg" class="r-stretch">
+				</section>
+				<section data-auto-animate data-auto-animate-id="residual">
+					<h3 data-id="residual-header">Residual Connection</h3>
+					<p>Stabilize training</p>
+					<img src="imgs/loc_residual.svg" class="r-stretch">
+				</section>
+				<section data-auto-animate data-auto-animate-id="residual">
+					<h3 data-id="residual-header">Residual Connection</h3>
+					<p>Residual is good for deep network</p>
+					<div class="justify-center"
+						style="display: flex; flex-direction: row; gap: 100px; align-items: center; font-size: 28px; height: 100px;">
+						<p>
+							$$
+							\begin{align*}
+							L_1(x) &= xW_1 + b_1\\
+							L_2(x) &= xW_2 + b_2\\
+							\end{align*}
+							$$
+						</p>
+						<p>
+							$$
+							\begin{align*}
+							&y = L_2(L_1(x))\\
+							&y_{res} = L_2(L_1(x)) + L_1(x)\\
+							\end{align*}
+							$$
+						</p>
+					</div>
+					<p>Why? Let's look at their gradient:</p>
+					<p style="font-size: 28px;">
+						$$
+						\begin{align*}
+						\frac{\partial y}{\partial W_1} &= \frac {\partial y}{\partial L_2} \frac {\partial
+						L_2}{\partial L_1} \frac {\partial L_1}{\partial W_1}\\
+						\frac{\partial y_{res}}{\partial W_1} &= \underbrace{ \frac {\partial y_{res}}{\partial L_2}
+						\frac {\partial L_2}{\partial L_1} \frac {\partial L_1}{\partial W_1} }_{\text{Vanish!}} + \frac
+						{\partial y_{res}}{\partial L_1} \frac {\partial L_1}{\partial W_1}\\
+						\end{align*}
+						$$
+					</p>
+				</section>
+				<section>
+					<h3>Complete Transformer</h3>
+					<img src="imgs/full_transformer.svg" class="r-stretch">
+				</section>
+				<section>
+					<h3>Input Embedding</h3>
+					<img src="imgs/positional_encoding.svg" class="r-stretch">
+					<p style="font-size: 28px;">$E$ is learnable</p>
+				</section>
+				<section>
+					<h3>Output Block</h3>
+					<div class="r-stack">
+						<img src="imgs/output_block_frame1.svg" height="550">
+						<img src="imgs/output_block_frame2.svg" class="fragment" height="550">
+					</div>
+				</section>
+				<section>
+					<h3>Cool animation</h3>
+					<img data-src="https://3.bp.blogspot.com/-aZ3zvPiCoXM/WaiKQO7KRnI/AAAAAAAAB_8/7a1CYjp40nUg4lKpW7covGZJQAySxlg8QCLcBGAs/s640/transform20fps.gif"
+						class="r-stretch">
+					<p style="font-size: small;">Source: <a
+							href="https://research.google/blog/transformer-a-novel-neural-network-architecture-for-language-understanding/">https://research.google/blog/transformer-a-novel-neural-network-architecture-for-language-understanding/</a>
+					</p>
+				</section>
+			</section>
+			<section>
+				<p>Thank you for your <b><em>attention</em></b></p>
+			</section>
+		</div>
+	</div>
+
+	<script src="dist/reveal.js"></script>
+	<script src="plugin/notes/notes.js"></script>
+	<script src="plugin/markdown/markdown.js"></script>
+	<script src="plugin/highlight/highlight.js"></script>
+	<script src="plugin/math/math.js"></script>
+	<script src="plugin/zoom/zoom.js"></script>
+	<script>
+		// More info about initialization & config:
+		// - https://revealjs.com/initialization/
+		// - https://revealjs.com/config/
+		Reveal.initialize({
+			hash: true,
+			slideNumber: 'c/t',
+			// Learn about plugins: https://revealjs.com/plugins/
+			plugins: [RevealMarkdown, RevealHighlight, RevealNotes, RevealMath.KaTeX, RevealZoom]
+		});
+	</script>
+</body>
+
+</html>
