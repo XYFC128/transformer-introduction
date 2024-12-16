@@ -35,7 +35,7 @@
 					<img src="imgs/info_sharing.svg" class="r-stretch">
 				</section>
 				<section>
-					<p>Two questions to anwser:</p>
+					<p>Two questions to answer:</p>
 					<ul>
 						<li>Get information from which token?</li>
 						<li>What information are we sharing?</li>
@@ -53,10 +53,10 @@
 					<div class="r-hstack justify-center">
 						<div>
 							<p>
-								<strong>Input:</strong> a sequence of vectors
+								<strong>Input:</strong> a sequence of tokens
 							</p>
 							<ul>
-								<li>Each vector encodes a word</li>
+								<li>Token: similar to a word</li>
 								<li>Sequence length: $N$</li>
 								<li>Embeds token in $d$-dimensional space</li>
 							</ul>
@@ -100,25 +100,27 @@
 				<section data-auto-animate>
 					<p data-id="text1">Check answers against questions</p>
 					<p>$q_i \cdot k_j$</p>
-					<p class="fragment">Dot product measures the similariry in <b>direction</b></p>
+					<p class="fragment">Dot product measures the similarity in <b>direction</b></p>
 				</section>
 				<section data-auto-animate data-transition="fade">
 					<p data-id="text1">Check answers against questions</p>
 					<img src="imgs/calc_QK.svg" class="r-stretch">
 				</section>
-				<section data-transition="fade">
+				<section>
+					What <em>information</em> are we passing?
+				</section>
+				<section>
+					<h3>Value*</h3>
+					<p>Extract information with $W^V$</p>
+					<img src="imgs/calc_V_star.svg" class="r-stretch">
+				</section>
+				<section>
 					<p>Converting score to distribution</p>
 					<img src="imgs/calc_alpha_ij.svg" class="r-stretch">
 					<p><b>Important:</b> softmax is applied row-wise</p>
 				</section>
 				<section>
 					<p>$\alpha_{ij}$: the amount of <em>information</em> to pass from token $j$ to token $i$</p>
-					<p class="fragment">What <em>information</em> are we passing?</p>
-				</section>
-				<section>
-					<h3>Value*</h3>
-					<p>Extract information with $W^V$</p>
-					<img src="imgs/calc_V_star.svg" class="r-stretch">
 				</section>
 				<section data-auto-animate>
 					<h3 data-id="title-attention">Dot-Product Attention</h3>
@@ -187,7 +189,7 @@
 				</section>
 				<!-- multihead detailed overview -->
 				<section>
-					<h3>Attention Paramenters</h3>
+					<h3>Attention Parameters</h3>
 					<p>The parameters per head (on average):</p>
 					<img src="imgs/attention_params.svg" class="r-stretch">
 					<p>Usually, we set $d_k = d_v = d / h$</p>
