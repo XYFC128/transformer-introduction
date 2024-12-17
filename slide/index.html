@@ -73,6 +73,7 @@
 							<ul>
 								<li>Same dimensions as the input</li>
 								<li>$a_i$: new info. for token $i$</li>
+								<li>Collect contextual information</li>
 								<li>We update the information in $X$ by adding $A$ to $X$</li>
 							</ul>
 						</div>
@@ -121,6 +122,7 @@
 				</section>
 				<section>
 					<p>$\alpha_{ij}$: the amount of <em>information</em> to pass from token $j$ to token $i$</p>
+					<p>For token $i$: $\ \sum_{j=1}^{N}\alpha_{ij} = 1$</p>
 				</section>
 				<section data-auto-animate>
 					<h3 data-id="title-attention">Dot-Product Attention</h3>
